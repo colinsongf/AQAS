@@ -1,0 +1,9 @@
+the test question is:新书公告在哪里看？
+the seg of the question is:哪里/在/公告/看/新书
+the cos is:0.8392
+the answer of the test question is:各阅览室均有相关类别的工具书。大型工具书集中在四楼情报部阅览室（如书目、词典、百科全书、年鉴、手册、指南、名录、综述、标准、年鉴、辞典等）。
+
+the actual question is:工具书在哪里？
+
+the actual question seg is:
+{'工具书': 1.0}
