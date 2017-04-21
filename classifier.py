@@ -124,33 +124,34 @@ def initList(questions):
 		question_list[i] = [questions[i],]
 	return question_list
 
-
+print('open the inverted index file of answer keywords')
 filedir = os.path.abspath("./data/IIndex_keywords.json")
 jsonfile = open(filedir,"r")
 IIndexs = json.load(jsonfile)
 
+print('open the file of the questions segs')
 filedir = os.path.abspath("./data/questions-seg.json")
 jsonfile = open(filedir,"r")
 questions = json.load(jsonfile)
 
-filedir = os.path.abspath("./data/log")
-logfile = open(filedir,"w",encoding='utf8')
-
 THRESHOLD = 0.6
 LowerBound = 0.3
-ALPHA = 0.5
+ALPHA = 0.8
 
-question_list = initList(questions[:100])
+print('init the origin class')
+question_list = initList(questions[:50])
 
 print('begin to cluster!')
 HierarchicalClustering(question_list,IIndexs)
+print('finish clustering!')
+print('write the result to the file!')
 filedir = os.path.abspath("./data/class_res.txt")
 resfile = open(filedir,"w")
 for qclass in question_list.values():
 	for question in qclass:
 		resfile.write(question['question']+'\r\n\r\n')
 	resfile.write('---------------------------\r\n')
-		
+print('programm over')
 		# print(max_sim)
 		# print(question_list[i])
 		# print(question_list[i+1+max_index])
