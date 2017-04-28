@@ -19,7 +19,7 @@ def calWordCoOccurrence(word1, word2, IIndexs):
 	try:
 		intersection = ids1 & ids2
 		union = ids1 | ids2
-		wco = len(intersection)/len(union)
+		return len(intersection)/len(union)
 	except Exception as e:
 		return 0
 
@@ -142,12 +142,13 @@ def initList(questions):
 	return (question_list, classes)
 
 print('open the inverted index file of answer keywords')
-filedir = os.path.abspath("./data/IIndex_keywords.json")
+root = "D:/workspace/python-aqs"
+filedir = os.path.abspath(root+"/data/IIndex_keywords.json")
 jsonfile = open(filedir,"r")
 IIndexs = json.load(jsonfile)
 
 print('open the file of the questions segs')
-filedir = os.path.abspath("./data/questions-seg.json")
+filedir = os.path.abspath(root+"/data/questions-seg.json")
 jsonfile = open(filedir,"r")
 questions = json.load(jsonfile)
 
@@ -157,14 +158,14 @@ ALPHA = 0.8
 
 t1 = time.time()
 print('init the origin class')
-(question_list, classes) = initList(questions[:200])
+(question_list, classes) = initList(questions[:100])
 
 print('begin to cluster!')
 classes = HierarchicalClustering(question_list, IIndexs, classes)
 
 print('finish clustering!')
 print('write the result to the file!')
-filedir = os.path.abspath("./data/class_res.txt")
+filedir = os.path.abspath(root+"/data/class_res.txt")
 resfile = open(filedir,"w")
 for key, qclass in classes.items():
 	json.dump({key:list(qclass)}, resfile)
