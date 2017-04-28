@@ -10,19 +10,18 @@ def normalize(l1):
 	return [round(x/(sum(l1)+0.0001), 4) for x in l1]
 
 def calWordCoOccurrence(word1, word2, IIndexs):
-	if word1 in IIndexs:
+	if word1 in IIndexs and word2 in IIndexs:
 		ids1 = set(IIndexs[word1]['ids'])
-	else:
-		ids1 = set()
-	if word2 in IIndexs:
 		ids2 = set(IIndexs[word2]['ids'])
 	else:
-		ids2 = set()
-		
-	
-	intersection = ids1 & ids2
-	union = ids1 | ids2
-	return len(intersection)/(len(union)+0.0001)
+		return 0
+
+	try:
+		intersection = ids1 & ids2
+		union = ids1 | ids2
+		wco = len(intersection)/len(union)
+	except Exception as e:
+		return 0
 
 def generateVector(question_list, words_set):
 	vector = {}
@@ -55,6 +54,8 @@ def calSim(set1,set2,IIndexs):
 	for question in set2:
 		words_set2 |= set(question['answer_keywords'])
 
+	if len(words_set1) == 0 or len(words_set2) == 0:
+		return 0
 	v1 = generateVector(set1,words_set1|words_set2)
 	v2 = generateVector(set2,words_set1|words_set2)
 	cos = round(calCOS(v1,v2),4)
@@ -63,7 +64,7 @@ def calSim(set1,set2,IIndexs):
 	# print('begin to  cal the word co-occur!')
 	wsum = 0
 	for word1 in words_set1:
-		templ = []
+		templ = [0,]
 		for word2 in words_set2:
 			templ.append(round(calWordCoOccurrence(word1, word2, IIndexs),4))
 		wsum += max(templ)
