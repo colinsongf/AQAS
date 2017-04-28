@@ -78,51 +78,67 @@ def calSim(set1,set2,IIndexs):
 # 	return max_sim
 			
 
-def HierarchicalClustering(question_list, IIndexs):
+def HierarchicalClustering(question_list, IIndexs, classes):
 	
 	# t1 = time.time()
 	while True:
 		max_sim = (0,0,0)
+		t1 = time.time()
 		print("begin to find the most similar sentence!")
-		templ1 = [(k,v) for k, v in question_list.items()]
-		for key, qlist in templ1:
+		templ1 = [(k,v) for k, v in classes.items()]
+		length = max(classes.keys())+1
+		simmatrix = -np.ones((length, length))
+		for key1, qidclass1 in templ1:
 			submax = 0
-			for key2, qlist2 in question_list.items():
-				if key != key2:
-					sim = calSim(qlist, qlist2, IIndexs)
+			for key2, qidclass2 in classes.items():
+				if key1 != key2:
+					if simmatrix[key1][key2] == -1:
+						qlist2 = []
+						qlist1 = []
+						for qid in qidclass1:
+							qlist1.append(question_list[qid])
+						for qid in qidclass2:
+							qlist2.append(question_list[qid])
+						sim = calSim(qlist1, qlist2, IIndexs)
+						simmatrix[key1][key2] = sim
+					else:
+						sim = simmatrix[key1][key2]
 					if submax < sim:
 						submax = sim
 					if max_sim[2] < sim:
 						# (classid1,classid2, similarity)
-						max_sim = (key, key2, sim)
+						max_sim = (key1, key2, sim)
 			if submax < LowerBound:
 				# print(key)
 				# print(submax)
-				del question_list[key]
+				del classes[key1]
 			
 			# t2 = time.time()
 			# print("program has cost %s s" % (t2-t1))
-		print('finish finding the most similar sentence!')
+		t2 = time.time()
+		print('finish finding the most similar sentence! cost %s seconds' % round(t2-t1,4))
 		if max_sim[2] < THRESHOLD:
 			# result_list.append(question_list[i])
-			return question_list
+			return classes
 		else:
 			try:
-				newlist = question_list[max_sim[0]]+question_list[max_sim[1]]
-				del question_list[max_sim[0]]
-				del question_list[max_sim[1]]
-				question_list[max_sim[0]] = newlist
+				newlist = classes[max_sim[0]].union(classes[max_sim[1]])
+				del classes[max_sim[0]]
+				del classes[max_sim[1]]
+				classes[max_sim[0]] = newlist
 			except KeyError as e:
 				print(max_sim)
-				print(question_list.keys())
+				print(classes.keys())
 				exit()
 			
 
 def initList(questions):
 	question_list = {}
+	classes = {}
 	for i in range(0,len(questions)):
-		question_list[i] = [questions[i],]
-	return question_list
+		question_list[questions[i]['id']] = questions[i]
+		classes[questions[i]['id']] = {questions[i]['id'],}
+	return (question_list, classes)
 
 print('open the inverted index file of answer keywords')
 filedir = os.path.abspath("./data/IIndex_keywords.json")
@@ -134,24 +150,26 @@ filedir = os.path.abspath("./data/questions-seg.json")
 jsonfile = open(filedir,"r")
 questions = json.load(jsonfile)
 
-THRESHOLD = 0.6
+THRESHOLD = 0.56
 LowerBound = 0.3
 ALPHA = 0.8
 
+t1 = time.time()
 print('init the origin class')
-question_list = initList(questions[:50])
+(question_list, classes) = initList(questions[:200])
 
 print('begin to cluster!')
-HierarchicalClustering(question_list,IIndexs)
+classes = HierarchicalClustering(question_list, IIndexs, classes)
+
 print('finish clustering!')
 print('write the result to the file!')
 filedir = os.path.abspath("./data/class_res.txt")
 resfile = open(filedir,"w")
-for qclass in question_list.values():
-	for question in qclass:
-		resfile.write(question['question']+'\r\n\r\n')
-	resfile.write('---------------------------\r\n')
-print('programm over')
+for key, qclass in classes.items():
+	json.dump({key:list(qclass)}, resfile)
+	resfile.write('\r\n')
+t2 = time.time()
+print('programm over! cost %s hours' % round((t2-t1)/3600,1))
 		# print(max_sim)
 		# print(question_list[i])
 		# print(question_list[i+1+max_index])
